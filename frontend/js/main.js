@@ -1,4 +1,3 @@
-// ============ App State ============
 let appState = {
     user: null,
     profile: null,
@@ -9,17 +8,10 @@ let appState = {
     cart: [],
 };
 
-// ============ Initialization ============
+
+// ================= INIT =================
 window.addEventListener('load', async () => {
     try {
-        // 🧠 Detectar redirect OAuth (GitHub)
-        const hash = window.location.hash;
-
-        if (hash && hash.includes("access_token")) {
-            window.location.hash = ""; // limpiar URL
-        }
-
-        // 🔥 Usar sesión REAL de Supabase
         const { data, error } = await supabase.auth.getSession();
 
         if (error || !data.session) {
@@ -29,51 +21,48 @@ window.addEventListener('load', async () => {
 
         await initializeApp();
 
-    } catch (error) {
-        console.error('Init error:', error);
+    } catch (err) {
+        console.error(err);
         showAuthModal();
     }
 });
 
-// 🔥 Reactividad automática (pro)
-supabase.auth.onAuthStateChange((event, session) => {
+
+// reacción automática a login/logout
+supabase.auth.onAuthStateChange(async (event, session) => {
     if (session) {
-        initializeApp();
+        await initializeApp();
     } else {
         showAuthModal();
     }
 });
 
+
+// ================= APP INIT =================
 async function initializeApp() {
-    try {
-        const { data, error } = await supabase.auth.getSession();
+    const { data, error } = await supabase.auth.getSession();
 
-        if (error || !data.session) {
-            showAuthModal();
-            return;
-        }
-
-        appState.user = {
-            id: data.session.user.id,
-            email: data.session.user.email,
-        };
-
-        auth.session = data.session;
-        auth.user = appState.user;
-
-        const profile = await auth.getProfile();
-        appState.profile = profile;
-
-        showApp();
-        await loadDashboardData();
-
-    } catch (error) {
-        console.error('Init error:', error);
+    if (error || !data.session) {
         showAuthModal();
+        return;
     }
+
+    appState.user = data.session.user;
+
+    auth.session = data.session;
+    auth.user = data.session.user;
+
+    const profile = await auth.getProfile();
+    appState.profile = profile;
+
+    showApp();
+    await loadDashboardData();
+
+    router.goTo('dashboard');
 }
 
-// ============ UI ============
+
+// ================= UI =================
 function showAuthModal() {
     document.getElementById('authModal').classList.remove('hidden');
     document.getElementById('app').classList.add('hidden');
@@ -85,23 +74,24 @@ function showApp() {
 
     document.getElementById('userEmail').textContent = appState.user.email;
 
-    const roleText =
+    const role =
         appState.profile?.role === 'admin' ? 'Administrador' :
         appState.profile?.role === 'vet' ? 'Veterinario' :
         'Cliente';
 
-    document.getElementById('userRole').textContent = roleText;
+    document.getElementById('userRole').textContent = role;
 
     const adminPanel = document.getElementById('adminPanel');
 
-    if (['admin', 'sales', 'vet'].includes(appState.profile?.role)) {
+    if (['admin', 'vet', 'sales'].includes(appState.profile?.role)) {
         adminPanel.classList.remove('hidden');
     } else {
         adminPanel.classList.add('hidden');
     }
 }
 
-// ============ AUTH ============
+
+// ================= AUTH =================
 document.getElementById('loginForm').addEventListener('submit', async (e) => {
     e.preventDefault();
     clearError('loginError');
@@ -111,21 +101,22 @@ document.getElementById('loginForm').addEventListener('submit', async (e) => {
 
     try {
         await auth.login(email, password);
-    } catch (error) {
-        showError('loginError', error.message);
+    } catch (err) {
+        showError('loginError', err.message);
     }
 });
 
-document.getElementById('githubLoginBtn').addEventListener('click', async (e) => {
-    e.preventDefault();
+
+document.getElementById('githubLoginBtn').addEventListener('click', async () => {
     clearError('loginError');
 
     try {
         await auth.loginWithGithub();
-    } catch (error) {
-        showError('loginError', error.message);
+    } catch (err) {
+        showError('loginError', err.message);
     }
 });
+
 
 document.getElementById('signupForm').addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -146,15 +137,15 @@ document.getElementById('signupForm').addEventListener('submit', async (e) => {
 
     try {
         await auth.signup(email, password, role);
-    } catch (error) {
-        showError('signupError', error.message);
+    } catch (err) {
+        showError('signupError', err.message);
     }
 });
+
 
 document.getElementById('logoutBtn').addEventListener('click', async () => {
     await auth.logout();
 
-    // limpiar estado
     appState = {
         user: null,
         profile: null,
@@ -168,12 +159,13 @@ document.getElementById('logoutBtn').addEventListener('click', async () => {
     showAuthModal();
 });
 
-// ============ DASHBOARD ============
+
+// ================= DASHBOARD =================
 async function loadDashboardData() {
     try {
         const [products, pets] = await Promise.all([
             api.getProducts(),
-            api.getPets(),
+            api.getPets()
         ]);
 
         let appointments = [];
@@ -186,29 +178,32 @@ async function loadDashboardData() {
             orders = await api.getOrders();
         }
 
-        appState = { ...appState, products, pets, appointments, orders };
+        appState.products = products;
+        appState.pets = pets;
+        appState.appointments = appointments;
+        appState.orders = orders;
 
-        productCount.textContent = `${products.length} productos`;
-        petsCount.textContent = `${pets.filter(p => !p.adopted).length} mascotas`;
-        appointmentsCount.textContent = `${appointments.length} citas`;
-        ordersCount.textContent = `${orders.length} órdenes`;
+        productCount.textContent = `${products.length}`;
+        petsCount.textContent = `${pets.filter(p => !p.adopted).length}`;
+        appointmentsCount.textContent = `${appointments.length}`;
+        ordersCount.textContent = `${orders.length}`;
 
-    } catch (error) {
-        console.error(error);
+    } catch (err) {
+        console.error(err);
     }
 }
 
-// ============ PRODUCTS ============
+
+// ================= PRODUCTS =================
 async function loadProducts() {
     const container = productsContainer;
     container.innerHTML = 'Cargando...';
 
     try {
         const products = await api.getProducts();
-        appState.products = products;
 
         container.innerHTML = products.map(p => `
-            <div class="product-card">
+            <div class="card">
                 <h3>${p.name}</h3>
                 <p>${p.type}</p>
 
@@ -221,61 +216,67 @@ async function loadProducts() {
                 <p>${formatPrice(p.price)}</p>
 
                 <button onclick="addToCart(${p.id}, '${p.name}', ${p.price})">
-                    Comprar
+                    Añadir
                 </button>
             </div>
         `).join('');
 
-    } catch (e) {
+    } catch (err) {
         container.innerHTML = 'Error cargando productos';
     }
 }
+
 
 function addToCart(id, name, price) {
     appState.cart.push({ id, name, price });
     alert('Añadido 🐾');
 }
 
-// ============ PETS ============
+
+// ================= PETS =================
 async function loadPets() {
     const container = petsContainer;
     container.innerHTML = 'Cargando...';
 
     const pets = await api.getPets();
-    const disponibles = pets.filter(p => !p.adopted);
+    const available = pets.filter(p => !p.adopted);
 
-    container.innerHTML = disponibles.map(p => `
-        <div class="pet-card">
+    container.innerHTML = available.map(p => `
+        <div class="card">
             <h3>🐾 ${p.name}</h3>
             <button onclick="adoptPet(${p.id})">Adoptar</button>
         </div>
     `).join('');
 }
 
+
 async function adoptPet(id) {
     await api.adoptPet(id);
     alert('Adoptado 🐺');
     loadPets();
+    loadDashboardData();
 }
 
-// ============ APPOINTMENTS ============
+
+// ================= APPOINTMENTS =================
 async function loadAppointments() {
     const data = await api.getMyAppointments();
 
     appointmentsContainer.innerHTML = data.map(a => `
-        <div>
+        <div class="card">
             <p>${a.date}</p>
             <p>${a.description}</p>
         </div>
     `).join('');
 }
 
-// ============ ORDERS ============
+
+// ================= ORDERS =================
 async function loadOrders() {
     const data = await api.getOrders();
 
     ordersContainer.innerHTML = data.map(o => `
-        <div>
+        <div class="card">
             <p>#${o.id}</p>
             <p>${formatPrice(o.total)}</p>
         </div>

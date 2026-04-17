@@ -1,116 +1,74 @@
-// API Configuration - ACTUALIZA ESTO EN PRODUCCIÓN
-const API_URL = 'https://clinica-veterinaria-4iyb.onrender.com';
-
 class API {
-    constructor(apiUrl) {
-        this.apiUrl = apiUrl;
-    }
-
-    async request(endpoint, options = {}) {
-        const token = localStorage.getItem('token');
-
-        const headers = {
-            'Content-Type': 'application/json',
-            ...options.headers,
-        };
-
-        if (token) {
-            headers['Authorization'] = `Bearer ${token}`;
-        }
-
-        try {
-            const response = await fetch(`${this.apiUrl}${endpoint}`, {
-                ...options,
-                headers,
-            });
-
-            if (response.status === 401) {
-                // Token inválido, desloguear
-                localStorage.removeItem('token');
-                window.location.href = '/';
-                throw new Error('Sesión expirada');
-            }
-
-            if (!response.ok) {
-                const error = await response.json();
-                throw new Error(error.error || `Error ${response.status}`);
-            }
-
-            return await response.json();
-        } catch (error) {
-            console.error('API Error:', error);
-            throw error;
-        }
-    }
-
-    // ============ Products ============
     async getProducts() {
-        return this.request('/products');
+        const { data, error } = await supabaseClient
+            .from('products')
+            .select('*');
+
+        if (error) throw error;
+        return data;
     }
 
-    async createProduct(name, price, type) {
-        return this.request('/products', {
-            method: 'POST',
-            body: JSON.stringify({ name, price, type }),
-        });
-    }
-
-    // ============ Pets ============
     async getPets() {
-        return this.request('/pets');
+        const { data, error } = await supabaseClient
+            .from('pets')
+            .select('*');
+
+        if (error) throw error;
+        return data;
     }
 
-    async createPet(name, type) {
-        return this.request('/pets', {
-            method: 'POST',
-            body: JSON.stringify({ name, adopted: false }),
-        });
+    async adoptPet(id) {
+        const { error } = await supabaseClient
+            .from('pets')
+            .update({ adopted: true })
+            .eq('id', id);
+
+        if (error) throw error;
     }
 
-    async adoptPet(petId) {
-        return this.request(`/pets/adopt/${petId}`, {
-            method: 'POST',
-        });
-    }
-
-    // ============ Orders ============
-    async getOrders() {
-        return this.request('/orders', {
-            method: 'GET',
-        });
-    }
-
-    async getOrder(orderId) {
-        return this.request(`/orders/${orderId}`);
-    }
-
-    async createOrder(total) {
-        return this.request('/orders', {
-            method: 'POST',
-            body: JSON.stringify({ total }),
-        });
-    }
-
-    // ============ Appointments ============
     async getAppointments() {
-        return this.request('/appointments');
+        const { data, error } = await supabaseClient
+            .from('appointments')
+            .select('*');
+
+        if (error) throw error;
+        return data;
     }
 
     async getMyAppointments() {
-        return this.request('/appointments/me');
+        const user = supabaseClient.auth.getUser();
+        const { data, error } = await supabaseClient
+            .from('appointments')
+            .select('*')
+            .eq('user_id', (await user).data.user.id);
+
+        if (error) throw error;
+        return data;
     }
 
-    async createAppointment(vet_id, date, description) {
-        return this.request('/appointments', {
-            method: 'POST',
-            body: JSON.stringify({ vet_id, date, description }),
-        });
+    async getOrders() {
+        const { data, error } = await supabaseClient
+            .from('orders')
+            .select('*');
+
+        if (error) throw error;
+        return data;
     }
 
-    // ============ Health Check ============
-    async healthCheck() {
-        return this.request('/');
+    async createOrder(total) {
+        const user = await supabaseClient.auth.getUser();
+
+        const { error } = await supabaseClient
+            .from('orders')
+            .insert([
+                {
+                    user_id: user.data.user.id,
+                    total
+                }
+            ]);
+
+        if (error) throw error;
     }
 }
 
-const api = new API(API_URL);
+window.api = new API();

@@ -1,4 +1,3 @@
-// Simple Router for SPA
 class Router {
     constructor() {
         this.currentPage = 'dashboard';
@@ -6,38 +5,46 @@ class Router {
     }
 
     init() {
-        // Set up nav button listeners
-        document.querySelectorAll('.nav-btn').forEach((btn) => {
-            btn.addEventListener('click', (e) => {
-                const page = e.target.dataset.page;
-                if (page) this.goTo(page);
+        // botones del navbar
+        document.querySelectorAll('.nav-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const page = btn.dataset.page;
+                this.goTo(page);
             });
         });
+
+        // cargar dashboard al iniciar
+        this.goTo('dashboard');
     }
 
     goTo(page) {
-        // Hide all pages
-        document.querySelectorAll('.page').forEach((p) => {
+        // ocultar todas las páginas
+        document.querySelectorAll('.page').forEach(p => {
             p.classList.add('hidden');
         });
 
-        // Show target page
-        const targetPage = document.getElementById(page);
-        if (targetPage) {
-            targetPage.classList.remove('hidden');
-            this.currentPage = page;
+        // mostrar página objetivo
+        const target = document.getElementById(page);
 
-            // Update active nav button
-            document.querySelectorAll('.nav-btn').forEach((btn) => {
-                btn.classList.remove('active');
-                if (btn.dataset.page === page) {
-                    btn.classList.add('active');
-                }
-            });
-
-            // Load page-specific data
-            this.loadPageData(page);
+        if (!target) {
+            console.warn(`Página no encontrada: ${page}`);
+            return;
         }
+
+        target.classList.remove('hidden');
+        this.currentPage = page;
+
+        // estado activo en navbar
+        document.querySelectorAll('.nav-btn').forEach(btn => {
+            btn.classList.remove('active');
+
+            if (btn.dataset.page === page) {
+                btn.classList.add('active');
+            }
+        });
+
+        // cargar datos de la página
+        this.loadPageData(page);
     }
 
     loadPageData(page) {
@@ -45,15 +52,19 @@ class Router {
             case 'dashboard':
                 loadDashboardData();
                 break;
+
             case 'products':
                 loadProducts();
                 break;
+
             case 'pets':
                 loadPets();
                 break;
+
             case 'appointments':
                 loadAppointments();
                 break;
+
             case 'orders':
                 loadOrders();
                 break;
@@ -61,19 +72,23 @@ class Router {
     }
 }
 
-const router = new Router();
+window.router = new Router();
 
-// ============ Modal Functions ============
-function showModal(modalId) {
-    document.getElementById(modalId).classList.remove('hidden');
+
+// ================= MODALES =================
+
+function showModal(id) {
+    const modal = document.getElementById(id);
+    if (modal) modal.classList.remove('hidden');
 }
 
-function closeModal(modalId) {
-    document.getElementById(modalId).classList.add('hidden');
+function closeModal(id) {
+    const modal = document.getElementById(id);
+    if (modal) modal.classList.add('hidden');
 }
 
-// Close modal when clicking outside
-document.querySelectorAll('.modal').forEach((modal) => {
+// cerrar modal al hacer click fuera
+document.querySelectorAll('.modal').forEach(modal => {
     modal.addEventListener('click', (e) => {
         if (e.target === modal) {
             modal.classList.add('hidden');
@@ -81,61 +96,52 @@ document.querySelectorAll('.modal').forEach((modal) => {
     });
 });
 
-// ============ Tab Switching ============
-document.querySelectorAll('.tab-btn').forEach((btn) => {
-    btn.addEventListener('click', (e) => {
-        const tab = e.target.dataset.tab;
 
-        // Update buttons
-        document.querySelectorAll('.tab-btn').forEach((b) => {
-            b.classList.remove('active');
-        });
-        e.target.classList.add('active');
+// ================= TABS AUTH =================
 
-        // Update forms
-        document.querySelectorAll('.auth-form').forEach((form) => {
-            form.classList.add('hidden');
-        });
+document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+        const tab = btn.dataset.tab;
 
-        const formId = tab === 'login' ? 'loginForm' : 'signupForm';
-        document.getElementById(formId).classList.remove('hidden');
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
 
-        // Clear errors
-        document.getElementById('loginError').textContent = '';
-        document.getElementById('signupError').textContent = '';
+        document.querySelectorAll('.auth-form').forEach(f => f.classList.add('hidden'));
+
+        document.getElementById(tab === 'login' ? 'loginForm' : 'signupForm')
+            .classList.remove('hidden');
+
+        clearError('loginError');
+        clearError('signupError');
     });
 });
 
-// Utilities
-function showError(elementId, message) {
-    const el = document.getElementById(elementId);
-    if (el) {
-        el.textContent = message;
-    }
+
+// ================= UTILS =================
+
+function showError(id, msg) {
+    const el = document.getElementById(id);
+    if (el) el.textContent = msg;
 }
 
-function clearError(elementId) {
-    const el = document.getElementById(elementId);
-    if (el) {
-        el.textContent = '';
-    }
+function clearError(id) {
+    const el = document.getElementById(id);
+    if (el) el.textContent = '';
 }
 
-function formatPrice(price) {
-    return new Intl.NumberFormat('es-CO', {
+function formatPrice(value) {
+    return new Intl.NumberFormat('es-ES', {
         style: 'currency',
-        currency: 'COP',
-        minimumFractionDigits: 0,
-    }).format(price);
+        currency: 'EUR'
+    }).format(value);
 }
 
-function formatDate(dateString) {
-    const date = new Date(dateString);
-    return new Intl.DateTimeFormat('es-CO', {
+function formatDate(date) {
+    return new Intl.DateTimeFormat('es-ES', {
         year: 'numeric',
         month: 'long',
-        day: 'numeric',
+        day: '2-digit',
         hour: '2-digit',
-        minute: '2-digit',
-    }).format(date);
+        minute: '2-digit'
+    }).format(new Date(date));
 }
