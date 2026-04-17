@@ -5,10 +5,10 @@ const supabase = createClient(
   "sb_publishable_8EWHi1ME2H68VplEc35aag_A7EhXEgj"
 );
 
-// 🟢 LOGIN OAUTH
+// 🟢 LOGIN (GITHUB OAUTH)
 window.login = async () => {
   await supabase.auth.signInWithOAuth({
-    provider: "google",
+    provider: "github",
     options: {
       redirectTo: window.location.origin
     }
@@ -23,13 +23,24 @@ window.logout = async () => {
 
 // 🔐 OBTENER SESIÓN
 async function getSession() {
-  const { data } = await supabase.auth.getSession();
+  const { data, error } = await supabase.auth.getSession();
+
+  if (error || !data.session) {
+    console.log("No hay sesión activa");
+    return null;
+  }
+
   return data.session;
 }
 
 // 🟢 FETCH HELP
 async function apiCall(url) {
   const session = await getSession();
+
+  if (!session) {
+    alert("No estás logueado");
+    return;
+  }
 
   const res = await fetch(url, {
     headers: {
@@ -44,7 +55,6 @@ async function apiCall(url) {
 }
 
 // 🟡 ENDPOINTS BACKEND
-
 window.getProducts = () =>
   apiCall("https://clinica-veterinaria-4iyb.onrender.com/products");
 
