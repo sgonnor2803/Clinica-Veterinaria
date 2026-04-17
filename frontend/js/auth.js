@@ -65,6 +65,23 @@ class Auth {
         }
     }
 
+    async loginWithGithub() {
+        try {
+            const { data, error } = await supabase.auth.signInWithOAuth({
+                provider: 'github',
+                options: {
+                    redirectTo: window.location.origin + window.location.pathname
+                }
+            });
+
+            if (error) throw error;
+            return true;
+        } catch (error) {
+            console.error('GitHub login error:', error);
+            throw error;
+        }
+    }
+
     async logout() {
         try {
             const { error } = await supabase.auth.signOut();

@@ -102,6 +102,17 @@ document.getElementById('loginForm').addEventListener('submit', async (e) => {
     }
 });
 
+document.getElementById('githubLoginBtn').addEventListener('click', async (e) => {
+    e.preventDefault();
+    clearError('loginError');
+
+    try {
+        await auth.loginWithGithub();
+    } catch (error) {
+        showError('loginError', error.message || 'Error al iniciar sesión con GitHub');
+    }
+});
+
 document.getElementById('signupForm').addEventListener('submit', async (e) => {
     e.preventDefault();
     clearError('signupError');
