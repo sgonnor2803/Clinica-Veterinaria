@@ -1,231 +1,60 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Vet Secure - Clínica Veterinaria</title>
-    <link rel="stylesheet" href="css/style.css">
+  <meta charset="UTF-8" />
+  <title>Backend Test</title>
 </head>
 <body>
+  <h1>🧪 Test Backend Supabase</h1>
 
-<!-- ================= AUTH MODAL ================= -->
-<div id="authModal" class="modal">
-    <div class="modal-content">
+  <button onclick="loadProducts()">Cargar productos</button>
+  <button onclick="createProduct()">Crear producto test</button>
 
-        <h1>🐾 Vet Secure</h1>
-        <p>Clínica Veterinaria Segura</p>
+  <pre id="output">Esperando...</pre>
 
-        <!-- Tabs -->
-        <div class="tabs">
-            <button class="tab-btn active" data-tab="login">Login</button>
-            <button class="tab-btn" data-tab="signup">Registro</button>
-        </div>
+  <!-- Supabase -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-        <!-- LOGIN -->
-        <form id="loginForm" class="auth-form">
-            <input type="email" id="loginEmail" placeholder="Email" required>
-            <input type="password" id="loginPassword" placeholder="Contraseña" required>
+  <script>
+    const supabase = window.supabase.createClient(
+      "https://rrmatjtqugrmjurbwrxz.supabase.co",
+      "sb_publishable_8EWHi1ME2H68VplEc35aag_A7EhXEgj"
+    );
 
-            <button class="btn btn-primary" type="submit">Entrar</button>
+    const output = document.getElementById("output");
 
-            <p id="loginError" class="error"></p>
+    function log(data) {
+      output.textContent = JSON.stringify(data, null, 2);
+    }
 
-            <div class="divider">o</div>
+    // 🔥 LEER PRODUCTOS
+    async function loadProducts() {
+      const { data, error } = await supabase
+        .from("products")
+        .select("*");
 
-            <button type="button" class="btn btn-github" id="githubLoginBtn">
-                🐙 GitHub
-            </button>
-        </form>
+      if (error) return log(error);
 
-        <!-- SIGNUP -->
-        <form id="signupForm" class="auth-form hidden">
-            <input type="email" id="signupEmail" placeholder="Email" required>
-            <input type="password" id="signupPassword" placeholder="Contraseña" required>
-            <input type="password" id="signupConfirm" placeholder="Confirmar contraseña" required>
+      log(data);
+    }
 
-            <select id="signupRole">
-                <option value="client">Cliente</option>
-                <option value="vet">Veterinario</option>
-            </select>
+    // 🔥 CREAR PRODUCTO TEST
+    async function createProduct() {
+      const { data, error } = await supabase
+        .from("products")
+        .insert([
+          {
+            name: "Producto test",
+            price: 10,
+            type: "test"
+          }
+        ])
+        .select();
 
-            <button class="btn btn-primary" type="submit">Crear cuenta</button>
+      if (error) return log(error);
 
-            <p id="signupError" class="error"></p>
-        </form>
-
-    </div>
-</div>
-
-<!-- ================= APP ================= -->
-<div id="app" class="hidden">
-
-    <!-- NAV -->
-    <nav class="navbar">
-        <div class="logo">🐾 Vet Secure</div>
-
-        <div class="nav-links">
-            <button class="nav-btn active" data-page="dashboard">Dashboard</button>
-            <button class="nav-btn" data-page="products">Productos</button>
-            <button class="nav-btn" data-page="pets">Mascotas</button>
-            <button class="nav-btn" data-page="appointments">Citas</button>
-            <button class="nav-btn" data-page="orders">Órdenes</button>
-        </div>
-
-        <div class="user-menu">
-            <span id="userEmail"></span>
-            <span id="userRole"></span>
-            <button id="logoutBtn">Salir</button>
-        </div>
-    </nav>
-
-    <!-- ================= CONTENT ================= -->
-    <main class="container">
-
-        <!-- DASHBOARD -->
-        <section id="dashboard" class="page">
-            <h1>Dashboard 🐾</h1>
-
-            <div class="dashboard-grid">
-                <div class="card">
-                    <h3>Productos</h3>
-                    <p id="productCount">0</p>
-                </div>
-
-                <div class="card">
-                    <h3>Mascotas</h3>
-                    <p id="petsCount">0</p>
-                </div>
-
-                <div class="card">
-                    <h3>Citas</h3>
-                    <p id="appointmentsCount">0</p>
-                </div>
-
-                <div class="card">
-                    <h3>Órdenes</h3>
-                    <p id="ordersCount">0</p>
-                </div>
-            </div>
-
-            <div id="adminPanel" class="hidden">
-                <h2>Admin Panel</h2>
-                <button onclick="showAddProductForm()">+ Producto</button>
-                <button onclick="showAddPetForm()">+ Mascota</button>
-            </div>
-        </section>
-
-        <!-- PRODUCTS -->
-        <section id="products" class="page hidden">
-            <h1>Productos 📦</h1>
-            <div id="productsContainer"></div>
-        </section>
-
-        <!-- PETS -->
-        <section id="pets" class="page hidden">
-            <h1>Mascotas 🐶</h1>
-            <div id="petsContainer"></div>
-        </section>
-
-        <!-- APPOINTMENTS -->
-        <section id="appointments" class="page hidden">
-            <h1>Citas 📅</h1>
-
-            <form id="appointmentForm">
-                <input type="date" id="appointmentDate" required>
-                <input type="time" id="appointmentTime" required>
-
-                <select id="appointmentVet">
-                    <option value="1">Vet 1</option>
-                    <option value="2">Vet 2</option>
-                </select>
-
-                <textarea id="appointmentDescription"></textarea>
-
-                <button type="submit">Agendar</button>
-            </form>
-
-            <div id="appointmentsContainer"></div>
-        </section>
-
-        <!-- ORDERS -->
-        <section id="orders" class="page hidden">
-            <h1>Órdenes 🛍️</h1>
-            <div id="ordersContainer"></div>
-        </section>
-
-    </main>
-</div>
-
-<!-- ================= MODALS ================= -->
-
-<div id="productModal" class="modal hidden">
-    <div class="modal-content">
-        <h2>Producto</h2>
-
-        <form id="productForm">
-            <input id="productName" placeholder="Nombre" required>
-            <input id="productPrice" type="number" required>
-
-            <select id="productType">
-                <option value="comida">Comida</option>
-                <option value="medicamento">Medicamento</option>
-                <option value="accesorios">Accesorios</option>
-            </select>
-
-            <button type="submit">Guardar</button>
-            <button type="button" onclick="closeModal('productModal')">Cerrar</button>
-        </form>
-    </div>
-</div>
-
-<div id="petModal" class="modal hidden">
-    <div class="modal-content">
-        <h2>Mascota</h2>
-
-        <form id="petForm">
-            <input id="petName" placeholder="Nombre" required>
-
-            <select id="petType">
-                <option value="perro">Perro</option>
-                <option value="gato">Gato</option>
-            </select>
-
-            <button type="submit">Guardar</button>
-            <button type="button" onclick="closeModal('petModal')">Cerrar</button>
-        </form>
-    </div>
-</div>
-
-<div id="buyModal" class="modal hidden">
-    <div class="modal-content">
-        <h2>Compra</h2>
-
-        <div id="buyModalContent"></div>
-
-        <form id="buyForm">
-            <input id="buyTotal" readonly>
-            <button type="submit">Pagar</button>
-            <button type="button" onclick="closeModal('buyModal')">Cerrar</button>
-        </form>
-    </div>
-</div>
-
-<div id="adoptModal" class="modal hidden">
-    <div class="modal-content">
-        <p id="adoptModalText"></p>
-        <button id="confirmAdoptBtn">Confirmar</button>
-        <button onclick="closeModal('adoptModal')">Cancelar</button>
-    </div>
-</div>
-
-<!-- ================= SCRIPTS ================= -->
-
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
-<script src="js/auth.js"></script>
-<script src="js/api.js"></script>
-<script src="js/router.js"></script>
-<script src="js/main.js"></script>
-
+      log(data);
+    }
+  </script>
 </body>
 </html>
