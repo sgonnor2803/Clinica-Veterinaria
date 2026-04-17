@@ -226,6 +226,121 @@
       color: var(--danger);
     }
 
+    /* Modal Styles */
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .modal.show {
+      display: flex;
+    }
+
+    .modal-content {
+      background: var(--card-bg);
+      border-radius: 8px;
+      box-shadow: 0 20px 25px rgba(0, 0, 0, 0.15);
+      max-width: 450px;
+      width: 90%;
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 20px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .modal-header h2 {
+      margin: 0;
+      font-size: 20px;
+    }
+
+    .modal-close {
+      background: none;
+      border: none;
+      font-size: 24px;
+      cursor: pointer;
+      color: var(--text-light);
+      width: 30px;
+      height: 30px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .modal-close:hover {
+      color: var(--text);
+    }
+
+    .signup-form {
+      padding: 20px;
+    }
+
+    .form-group {
+      margin-bottom: 15px;
+    }
+
+    .form-group label {
+      display: block;
+      margin-bottom: 6px;
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    .form-group input,
+    .form-group select {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      font-size: 14px;
+      font-family: inherit;
+      transition: border-color 0.2s;
+    }
+
+    .form-group input:focus,
+    .form-group select:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.1);
+    }
+
+    .form-error {
+      background: #fee2e2;
+      color: #991b1b;
+      padding: 10px 12px;
+      border-radius: 6px;
+      margin-bottom: 15px;
+      font-size: 13px;
+      display: none;
+    }
+
+    .form-error.show {
+      display: block;
+    }
+
+    .form-actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 20px;
+    }
+
+    .form-actions button {
+      flex: 1;
+    }
+
     @media (max-width: 640px) {
       header .container {
         flex-direction: column;
@@ -255,10 +370,60 @@
       <h1>🐾 Vet Secure App</h1>
       <div class="auth-buttons">
         <button class="btn-primary" onclick="login()">🔑 Login con Github</button>
+        <button class="btn-primary" onclick="openSignupModal()">✏️ Registrarse</button>
         <button class="btn-danger" onclick="logout()">🚪 Logout</button>
       </div>
     </div>
   </header>
+
+  <!-- Modal de Sign Up -->
+  <div id="signupModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>📝 Crear Cuenta</h2>
+        <button class="modal-close" onclick="closeSignupModal()">✕</button>
+      </div>
+      <form onsubmit="handleSignup(event)" class="signup-form">
+        <div class="form-group">
+          <label for="email">📧 Email</label>
+          <input type="email" id="email" required placeholder="tu@email.com">
+        </div>
+
+        <div class="form-group">
+          <label for="password">🔐 Contraseña</label>
+          <input type="password" id="password" required placeholder="Mínimo 6 caracteres" minlength="6">
+        </div>
+
+        <div class="form-group">
+          <label for="confirmPassword">🔐 Confirmar Contraseña</label>
+          <input type="password" id="confirmPassword" required placeholder="Repite tu contraseña" minlength="6">
+        </div>
+
+        <div class="form-group">
+          <label for="fullName">👤 Nombre Completo</label>
+          <input type="text" id="fullName" required placeholder="Tu nombre">
+        </div>
+
+        <div class="form-group">
+          <label for="role">👔 Rol</label>
+          <select id="role" required>
+            <option value="">Selecciona un rol</option>
+            <option value="client">🐕 Cliente (Propietario de mascotas)</option>
+            <option value="veterinarian">🩺 Veterinario</option>
+            <option value="staff">👨‍💼 Staff (Recepcionista)</option>
+            <option value="admin">🔑 Administrador</option>
+          </select>
+        </div>
+
+        <div id="signupError" class="form-error"></div>
+
+        <div class="form-actions">
+          <button type="submit" class="btn-primary" style="width: 100%; background: var(--success); color: white;">Registrarse</button>
+          <button type="button" class="btn-action" onclick="closeSignupModal()">Cancelar</button>
+        </div>
+      </form>
+    </div>
+  </div>
 
   <div class="container">
     <div class="alert alert-error" id="errorAlert"></div>
