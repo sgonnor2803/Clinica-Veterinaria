@@ -70,7 +70,7 @@ class Auth {
             const { data, error } = await supabase.auth.signInWithOAuth({
                 provider: 'github',
                 options: {
-                    redirectTo: window.location.origin + window.location.pathname
+                    redirectTo: window.location.origin
                 }
             });
 
@@ -124,4 +124,4 @@ class Auth {
     }
 }
 
-const auth = new Auth();
+window.auth = new Auth();
