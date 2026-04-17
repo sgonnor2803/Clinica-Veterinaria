@@ -1,60 +1,24 @@
 <!DOCTYPE html>
-<html lang="es">
+<html>
 <head>
-  <meta charset="UTF-8" />
-  <title>Backend Test</title>
+  <title>Vet App</title>
 </head>
 <body>
-  <h1>🧪 Test Backend Supabase</h1>
 
-  <button onclick="loadProducts()">Cargar productos</button>
-  <button onclick="createProduct()">Crear producto test</button>
+  <h1>Vet Secure App</h1>
 
-  <pre id="output">Esperando...</pre>
+  <button onclick="login()">Login con Github</button>
+  <button onclick="logout()">Logout</button>
 
-  <!-- Supabase -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <hr>
 
-  <script>
-    const supabase = window.supabase.createClient(
-      "https://rrmatjtqugrmjurbwrxz.supabase.co",
-      "sb_publishable_8EWHi1ME2H68VplEc35aag_A7EhXEgj"
-    );
+  <button onclick="getProducts()">Productos</button>
+  <button onclick="getPets()">Pets</button>
+  <button onclick="getOrders()">Orders</button>
 
-    const output = document.getElementById("output");
+  <pre id="output"></pre>
 
-    function log(data) {
-      output.textContent = JSON.stringify(data, null, 2);
-    }
+  <script type="module" src="app.js"></script>
 
-    // 🔥 LEER PRODUCTOS
-    async function loadProducts() {
-      const { data, error } = await supabase
-        .from("products")
-        .select("*");
-
-      if (error) return log(error);
-
-      log(data);
-    }
-
-    // 🔥 CREAR PRODUCTO TEST
-    async function createProduct() {
-      const { data, error } = await supabase
-        .from("products")
-        .insert([
-          {
-            name: "Producto test",
-            price: 10,
-            type: "test"
-          }
-        ])
-        .select();
-
-      if (error) return log(error);
-
-      log(data);
-    }
-  </script>
 </body>
 </html>
