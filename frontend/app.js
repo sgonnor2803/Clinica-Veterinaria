@@ -5,12 +5,11 @@ const supabase = createClient(
   "sb_publishable_8EWHi1ME2H68VplEc35aag_A7EhXEgj"
 );
 
-// 🟢 LOGIN (GITHUB OAUTH)
 window.login = async () => {
   await supabase.auth.signInWithOAuth({
     provider: "github",
     options: {
-      redirectTo: window.location.origin
+      redirectTo: "https://clinica-veterinaria-frontend-1ydn.onrender.com"
     }
   });
 };
