@@ -23,25 +23,6 @@ function clearAlert(type) {
   alert.textContent = "";
 }
 
-// Modal functions
-function openSignupModal() {
-  document.getElementById("signupModal").classList.add("show");
-  document.getElementById("signupError").classList.remove("show");
-}
-
-function closeSignupModal() {
-  document.getElementById("signupModal").classList.remove("show");
-  document.getElementById("signupError").classList.remove("show");
-  document.getElementById("email").value = "";
-  document.getElementById("password").value = "";
-  document.getElementById("confirmPassword").value = "";
-  document.getElementById("fullName").value = "";
-  document.getElementById("role").value = "";
-}
-
-window.openSignupModal = openSignupModal;
-window.closeSignupModal = closeSignupModal;
-
 function clearOutput() {
   document.getElementById("output").textContent = "Esperando consultas...";
 }
@@ -91,98 +72,6 @@ window.logout = async () => {
   } catch (error) {
     showAlert("error", "Error al cerrar sesión: " + error.message);
     console.error(error);
-    setLoading(false);
-  }
-};
-
-// ✏️ REGISTRARSE
-window.handleSignup = async (event) => {
-  event.preventDefault();
-
-  const email = document.getElementById("email").value;
-  const password = document.getElementById("password").value;
-  const confirmPassword = document.getElementById("confirmPassword").value;
-  const fullName = document.getElementById("fullName").value;
-  const role = document.getElementById("role").value;
-  const errorDiv = document.getElementById("signupError");
-
-  // Limpiar error previo
-  errorDiv.classList.remove("show");
-  errorDiv.textContent = "";
-
-  // Validaciones
-  if (!email || !password || !confirmPassword || !fullName || !role) {
-    errorDiv.textContent = "Por favor completa todos los campos";
-    errorDiv.classList.add("show");
-    return;
-  }
-
-  if (password !== confirmPassword) {
-    errorDiv.textContent = "Las contraseñas no coinciden";
-    errorDiv.classList.add("show");
-    return;
-  }
-
-  if (password.length < 6) {
-    errorDiv.textContent = "La contraseña debe tener al menos 6 caracteres";
-    errorDiv.classList.add("show");
-    return;
-  }
-
-  try {
-    setLoading(true);
-
-    // 1. Crear usuario en Supabase Auth
-    const { data: authData, error: authError } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: {
-          full_name: fullName
-        }
-      }
-    });
-
-    if (authError) throw authError;
-
-    if (!authData.user) {
-      throw new Error("No se pudo crear el usuario");
-    }
-
-    // 2. Crear perfil en la tabla profiles
-    const { error: profileError } = await supabase
-      .from("profiles")
-      .insert([
-        {
-          id: authData.user.id,
-          email,
-          full_name: fullName,
-          role,
-          created_at: new Date().toISOString()
-        }
-      ]);
-
-    if (profileError) {
-      console.error("Error creando perfil:", profileError);
-      // Nota: El usuario se creó pero el perfil falló
-      // Esto puede ocurrir si ya existe un perfil
-    }
-
-    // Limpiar formulario
-    document.getElementById("email").value = "";
-    document.getElementById("password").value = "";
-    document.getElementById("confirmPassword").value = "";
-    document.getElementById("fullName").value = "";
-    document.getElementById("role").value = "";
-
-    closeSignupModal();
-    showAlert("success", `✓ Cuenta creada! Bienvenido ${fullName}. Por favor inicia sesión.`);
-
-  } catch (error) {
-    console.error("Error en signup:", error);
-    errorDiv.textContent = error.message || "Error al registrarse. Intenta más tarde.";
-    errorDiv.classList.add("show");
-  } finally {
     setLoading(false);
   }
 };
@@ -276,12 +165,4 @@ window.getAppointments = () =>
 // 🎬 INICIALIZAR AL CARGAR LA PÁGINA
 window.addEventListener("load", async () => {
   await updateStatusIndicator();
-
-  // Cerrar modal al hacer clic fuera
-  const modal = document.getElementById("signupModal");
-  modal.addEventListener("click", (e) => {
-    if (e.target === modal) {
-      closeSignupModal();
-    }
-  });
 });
