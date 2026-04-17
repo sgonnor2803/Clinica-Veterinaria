@@ -2,11 +2,17 @@
 const SUPABASE_URL = 'https://rrmatjtqugrmjurbwrxz.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_8EWHi1ME2H68VplEc35aag_A7EhXEgj';
 
-// Initialize Supabase
-const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+// Wait for Supabase to load
+let supabase = null;
 
-// Create global reference for API
-window.supabaseClient = supabase;
+async function initSupabase() {
+    while (!window.supabase) {
+        await new Promise(resolve => setTimeout(resolve, 100));
+    }
+    supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    window.supabaseClient = supabase;
+    return supabase;
+}
 
 class Auth {
     constructor() {
@@ -14,9 +20,17 @@ class Auth {
         this.session = null;
     }
 
+    async ensureSupabase() {
+        if (!supabase) {
+            await initSupabase();
+        }
+        return supabase;
+    }
+
     async login(email, password) {
         try {
-            const { data, error } = await supabase.auth.signInWithPassword({
+            const sb = await this.ensureSupabase();
+            const { data, error } = await sb.auth.signInWithPassword({
                 email,
                 password
             });
@@ -36,7 +50,8 @@ class Auth {
 
     async loginWithGithub() {
         try {
-            const { data, error } = await supabase.auth.signInWithOAuth({
+            const sb = await this.ensureSupabase();
+            const { data, error } = await sb.auth.signInWithOAuth({
                 provider: 'github',
                 options: {
                     redirectTo: window.location.origin + window.location.pathname
@@ -53,7 +68,8 @@ class Auth {
 
     async signup(email, password, role) {
         try {
-            const { data, error } = await supabase.auth.signUp({
+            const sb = await this.ensureSupabase();
+            const { data, error } = await sb.auth.signUp({
                 email,
                 password
             });
@@ -61,7 +77,7 @@ class Auth {
             if (error) throw error;
 
             // Create profile with role
-            const { error: profileError } = await supabase
+            const { error: profileError } = await sb
                 .from('profiles')
                 .insert([{
                     id: data.user.id,
@@ -82,7 +98,8 @@ class Auth {
 
     async logout() {
         try {
-            const { error } = await supabase.auth.signOut();
+            const sb = await this.ensureSupabase();
+            const { error } = await sb.auth.signOut();
             if (error) throw error;
 
             this.user = null;
@@ -99,7 +116,8 @@ class Auth {
         try {
             if (!this.user) return null;
 
-            const { data, error } = await supabase
+            const sb = await this.ensureSupabase();
+            const { data, error } = await sb
                 .from('profiles')
                 .select('*')
                 .eq('id', this.user.id)
@@ -115,7 +133,8 @@ class Auth {
 
     async checkSession() {
         try {
-            const { data, error } = await supabase.auth.getSession();
+            const sb = await this.ensureSupabase();
+            const { data, error } = await sb.auth.getSession();
 
             if (error || !data.session) {
                 return false;
@@ -135,3 +154,9 @@ class Auth {
 
 // Create global auth instance
 window.auth = new Auth();
+
+// Initialize Supabase on page load
+document.addEventListener('DOMContentLoaded', () => {
+    initSupabase().catch(err => console.error('Failed to initialize Supabase:', err));
+});
+

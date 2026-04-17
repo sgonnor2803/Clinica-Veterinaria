@@ -9,9 +9,25 @@ let appState = {
     cart: []
 };
 
+// Wait for auth to be ready
+function waitForAuth() {
+    return new Promise((resolve) => {
+        const checkAuth = setInterval(() => {
+            if (window.auth) {
+                clearInterval(checkAuth);
+                resolve();
+            }
+        }, 50);
+    });
+}
+
 // Initialize on page load
 window.addEventListener('load', async () => {
     try {
+        // Wait for auth to be available
+        await waitForAuth();
+
+        // Then try to authenticate
         const isAuthenticated = await auth.checkSession();
 
         if (!isAuthenticated) {
@@ -66,68 +82,75 @@ function showApp() {
 }
 
 // ============ Authentication ============
-document.getElementById('loginForm').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    clearError('loginError');
+document.addEventListener('DOMContentLoaded', async () => {
+    await waitForAuth();
 
-    const email = document.getElementById('loginEmail').value;
-    const password = document.getElementById('loginPassword').value;
+    document.getElementById('loginForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        clearError('loginError');
 
-    try {
-        await auth.login(email, password);
-        await initializeApp();
-    } catch (error) {
-        showError('loginError', error.message);
+        const email = document.getElementById('loginEmail').value;
+        const password = document.getElementById('loginPassword').value;
+
+        try {
+            await auth.login(email, password);
+            await initializeApp();
+        } catch (error) {
+            showError('loginError', error.message);
+        }
+    });
+
+    document.getElementById('signupForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        clearError('signupError');
+
+        const email = document.getElementById('signupEmail').value;
+        const password = document.getElementById('signupPassword').value;
+        const confirm = document.getElementById('signupConfirm').value;
+        const role = document.getElementById('signupRole').value;
+
+        if (password !== confirm) {
+            showError('signupError', 'Las contraseñas no coinciden');
+            return;
+        }
+
+        if (password.length < 6) {
+            showError('signupError', 'La contraseña debe tener al menos 6 caracteres');
+            return;
+        }
+
+        try {
+            await auth.signup(email, password, role);
+            await initializeApp();
+        } catch (error) {
+            showError('signupError', error.message);
+        }
+    });
+
+    const githubBtn = document.getElementById('githubLoginBtn');
+    if (githubBtn) {
+        githubBtn.addEventListener('click', async (e) => {
+            e.preventDefault();
+            clearError('loginError');
+
+            try {
+                await auth.loginWithGithub();
+            } catch (error) {
+                showError('loginError', error.message);
+            }
+        });
     }
-});
 
-document.getElementById('signupForm').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    clearError('signupError');
-
-    const email = document.getElementById('signupEmail').value;
-    const password = document.getElementById('signupPassword').value;
-    const confirm = document.getElementById('signupConfirm').value;
-    const role = document.getElementById('signupRole').value;
-
-    if (password !== confirm) {
-        showError('signupError', 'Las contraseñas no coinciden');
-        return;
-    }
-
-    if (password.length < 6) {
-        showError('signupError', 'La contraseña debe tener al menos 6 caracteres');
-        return;
-    }
-
-    try {
-        await auth.signup(email, password, role);
-        await initializeApp();
-    } catch (error) {
-        showError('signupError', error.message);
-    }
-});
-
-document.getElementById('githubLoginBtn')?.addEventListener('click', async (e) => {
-    e.preventDefault();
-    clearError('loginError');
-
-    try {
-        await auth.loginWithGithub();
-    } catch (error) {
-        showError('loginError', error.message);
-    }
-});
-
-document.getElementById('logoutBtn').addEventListener('click', async () => {
-    try {
-        await auth.logout();
-        showAuthModal();
-        document.getElementById('loginForm').reset();
-        document.getElementById('signupForm').reset();
-    } catch (error) {
-        console.error('Logout error:', error);
-    }
+    document.getElementById('logoutBtn').addEventListener('click', async () => {
+        try {
+            await auth.logout();
+            showAuthModal();
+            document.getElementById('loginForm').reset();
+            document.getElementById('signupForm').reset();
+        } catch (error) {
+            console.error('Logout error:', error);
+        }
+    });
 });
 
 // ============ Dashboard ============
