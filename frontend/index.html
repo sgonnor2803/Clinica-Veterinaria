@@ -1,24 +1,221 @@
 <!DOCTYPE html>
-<html>
+<html lang="es">
 <head>
-  <title>Vet App</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vet Secure - Clínica Veterinaria</title>
+    <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
+    <!-- Auth Modal -->
+    <div id="authModal" class="modal">
+        <div class="modal-content">
+            <h1>🐾 Vet Secure</h1>
+            <p>Clínica Veterinaria Segura</p>
 
-  <h1>Vet Secure App</h1>
+            <div id="authTabs" class="tabs">
+                <button class="tab-btn active" data-tab="login">Login</button>
+                <button class="tab-btn" data-tab="signup">Registro</button>
+            </div>
 
-  <button onclick="login()">Login con Github</button>
-  <button onclick="logout()">Logout</button>
+            <!-- Login Form -->
+            <form id="loginForm" class="auth-form">
+                <input type="email" id="loginEmail" placeholder="Email" required>
+                <input type="password" id="loginPassword" placeholder="Contraseña" required>
+                <button type="submit" class="btn btn-primary">Entrar</button>
+                <p id="loginError" class="error"></p>
+            </form>
 
-  <hr>
+            <!-- Signup Form -->
+            <form id="signupForm" class="auth-form hidden">
+                <input type="email" id="signupEmail" placeholder="Email" required>
+                <input type="password" id="signupPassword" placeholder="Contraseña (mín. 6)" required>
+                <input type="password" id="signupConfirm" placeholder="Confirmar contraseña" required>
+                <select id="signupRole" class="select-role">
+                    <option value="client">Cliente</option>
+                    <option value="vet">Veterinario</option>
+                </select>
+                <button type="submit" class="btn btn-primary">Registrarse</button>
+                <p id="signupError" class="error"></p>
+            </form>
+        </div>
+    </div>
 
-  <button onclick="getProducts()">Productos</button>
-  <button onclick="getPets()">Pets</button>
-  <button onclick="getOrders()">Orders</button>
+    <!-- Main App -->
+    <div id="app" class="hidden">
+        <!-- Navbar -->
+        <nav class="navbar">
+            <div class="nav-container">
+                <div class="logo">🐾 Vet Secure</div>
+                <div class="nav-links">
+                    <button class="nav-btn" data-page="dashboard">Dashboard</button>
+                    <button class="nav-btn" data-page="products">Productos</button>
+                    <button class="nav-btn" data-page="pets">Mascotas</button>
+                    <button class="nav-btn" data-page="appointments">Citas</button>
+                    <button class="nav-btn" data-page="orders">Órdenes</button>
+                </div>
+                <div class="user-menu">
+                    <span id="userEmail"></span>
+                    <span id="userRole" class="role-badge"></span>
+                    <button id="logoutBtn" class="btn btn-secondary">Salir</button>
+                </div>
+            </div>
+        </nav>
 
-  <pre id="output"></pre>
+        <!-- Content Area -->
+        <main class="container">
+            <!-- Dashboard Page -->
+            <section id="dashboard" class="page">
+                <h1>Bienvenido a Vet Secure 🐾</h1>
+                <div class="dashboard-grid">
+                    <div class="card">
+                        <h3>📦 Productos</h3>
+                        <p id="productCount">Cargando...</p>
+                        <button class="btn btn-primary" onclick="router.goTo('products')">Ver productos</button>
+                    </div>
+                    <div class="card">
+                        <h3>🐶 Mascotas Disponibles</h3>
+                        <p id="petsCount">Cargando...</p>
+                        <button class="btn btn-primary" onclick="router.goTo('pets')">Ver mascotas</button>
+                    </div>
+                    <div class="card">
+                        <h3>📅 Mis Citas</h3>
+                        <p id="appointmentsCount">Cargando...</p>
+                        <button class="btn btn-primary" onclick="router.goTo('appointments')">Gestionar citas</button>
+                    </div>
+                    <div class="card">
+                        <h3>🛍️ Mis Órdenes</h3>
+                        <p id="ordersCount">Cargando...</p>
+                        <button class="btn btn-primary" onclick="router.goTo('orders')">Ver órdenes</button>
+                    </div>
+                </div>
+                <div id="adminPanel" class="hidden">
+                    <hr>
+                    <h2>Panel de Administrador</h2>
+                    <div class="admin-actions">
+                        <button class="btn btn-success" onclick="showAddProductForm()">+ Agregar Producto</button>
+                        <button class="btn btn-success" onclick="showAddPetForm()">+ Agregar Mascota</button>
+                    </div>
+                </div>
+            </section>
 
-  <script type="module" src="app.js"></script>
+            <!-- Products Page -->
+            <section id="products" class="page hidden">
+                <h1>Productos 📦</h1>
+                <div id="productsContainer" class="grid">
+                    <p class="loading">Cargando productos...</p>
+                </div>
+            </section>
 
+            <!-- Pets Page -->
+            <section id="pets" class="page hidden">
+                <h1>Mascotas Disponibles 🐶</h1>
+                <div id="petsContainer" class="grid">
+                    <p class="loading">Cargando mascotas...</p>
+                </div>
+            </section>
+
+            <!-- Appointments Page -->
+            <section id="appointments" class="page hidden">
+                <h1>Citas Veterinarias 📅</h1>
+
+                <div class="form-section">
+                    <h2>Agendar Nueva Cita</h2>
+                    <form id="appointmentForm" class="form">
+                        <input type="date" id="appointmentDate" required>
+                        <input type="time" id="appointmentTime" required>
+                        <select id="appointmentVet" required>
+                            <option value="">Seleccionar veterinario</option>
+                            <option value="1">Veterinario 1</option>
+                            <option value="2">Veterinario 2</option>
+                        </select>
+                        <textarea id="appointmentDescription" placeholder="Descripción de la cita" rows="3"></textarea>
+                        <button type="submit" class="btn btn-primary">Agendar Cita</button>
+                    </form>
+                </div>
+
+                <h2>Mis Citas</h2>
+                <div id="appointmentsContainer" class="grid">
+                    <p class="loading">Cargando citas...</p>
+                </div>
+            </section>
+
+            <!-- Orders Page -->
+            <section id="orders" class="page hidden">
+                <h1>Mis Órdenes 🛍️</h1>
+                <div id="ordersContainer" class="grid">
+                    <p class="loading">Cargando órdenes...</p>
+                </div>
+            </section>
+
+            <!-- Modals -->
+            <div id="productModal" class="modal hidden">
+                <div class="modal-content">
+                    <h2>Agregar Producto</h2>
+                    <form id="productForm" class="form">
+                        <input type="text" id="productName" placeholder="Nombre del producto" required>
+                        <input type="number" id="productPrice" placeholder="Precio" step="0.01" required>
+                        <select id="productType" required>
+                            <option value="">Tipo de producto</option>
+                            <option value="comida">Comida</option>
+                            <option value="medicamento">Medicamento</option>
+                            <option value="accesorios">Accesorios</option>
+                            <option value="higiene">Higiene</option>
+                        </select>
+                        <button type="submit" class="btn btn-primary">Guardar</button>
+                        <button type="button" class="btn btn-secondary" onclick="closeModal('productModal')">Cancelar</button>
+                    </form>
+                </div>
+            </div>
+
+            <div id="petModal" class="modal hidden">
+                <div class="modal-content">
+                    <h2>Agregar Mascota</h2>
+                    <form id="petForm" class="form">
+                        <input type="text" id="petName" placeholder="Nombre de la mascota" required>
+                        <select id="petType" required>
+                            <option value="">Tipo de mascota</option>
+                            <option value="perro">Perro</option>
+                            <option value="gato">Gato</option>
+                            <option value="conejo">Conejo</option>
+                            <option value="pajaro">Pájaro</option>
+                        </select>
+                        <button type="submit" class="btn btn-primary">Guardar</button>
+                        <button type="button" class="btn btn-secondary" onclick="closeModal('petModal')">Cancelar</button>
+                    </form>
+                </div>
+            </div>
+
+            <div id="buyModal" class="modal hidden">
+                <div class="modal-content">
+                    <h2>Procesar Compra</h2>
+                    <div id="buyModalContent"></div>
+                    <form id="buyForm" class="form">
+                        <input type="number" id="buyTotal" placeholder="Total" readonly>
+                        <button type="submit" class="btn btn-primary">Confirmar Compra</button>
+                        <button type="button" class="btn btn-secondary" onclick="closeModal('buyModal')">Cancelar</button>
+                    </form>
+                </div>
+            </div>
+
+            <div id="adoptModal" class="modal hidden">
+                <div class="modal-content">
+                    <h2>Confirmar Adopción</h2>
+                    <p id="adoptModalText"></p>
+                    <button id="confirmAdoptBtn" class="btn btn-primary">Confirmar Adopción</button>
+                    <button class="btn btn-secondary" onclick="closeModal('adoptModal')">Cancelar</button>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Supabase Script -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <!-- Scripts -->
+    <script src="js/auth.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/router.js"></script>
+    <script src="js/main.js"></script>
 </body>
 </html>
