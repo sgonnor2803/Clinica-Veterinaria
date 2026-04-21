@@ -20,7 +20,7 @@ export async function registerUser(req, res) {
   try {
     // Crear usuario en Supabase Auth
     const { data: authData, error: authError } =
-      await supabase.auth.signUpWithPassword({
+      await supabase.auth.signUp({
         email,
         password,
       });
