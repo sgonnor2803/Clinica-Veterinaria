@@ -39,7 +39,6 @@ export async function registerUser(req, res) {
       {
         id: userId,
         email,
-        full_name: fullName,
         role: "client",
       },
     ]);
@@ -96,7 +95,7 @@ export async function loginUser(req, res) {
     // Obtener datos del perfil
     const { data: profile, error: profileError } = await supabase
       .from("profiles")
-      .select("full_name, role")
+      .select("role")
       .eq("id", data.user.id)
       .single();
 
@@ -113,7 +112,6 @@ export async function loginUser(req, res) {
       user: {
         id: data.user.id,
         email: data.user.email,
-        fullName: profile?.full_name,
         role: profile?.role,
       },
       session: {
