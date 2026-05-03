@@ -151,16 +151,16 @@ async function apiCall(url, method = "GET") {
 
 // 🟡 ENDPOINTS BACKEND
 window.getProducts = () =>
-  apiCall("https://clinica-veterinaria-4iyb.onrender.com/products");
+  apiCall("https://clinica-veterinaria-api-sgvl.onrender.com/products");
 
 window.getPets = () =>
-  apiCall("https://clinica-veterinaria-4iyb.onrender.com/pets");
+  apiCall("https://clinica-veterinaria-api-sgvl.onrender.com/pets");
 
 window.getOrders = () =>
-  apiCall("https://clinica-veterinaria-4iyb.onrender.com/orders");
+  apiCall("https://clinica-veterinaria-api-sgvl.onrender.com/orders");
 
 window.getAppointments = () =>
-  apiCall("https://clinica-veterinaria-4iyb.onrender.com/appointments");
+  apiCall("https://clinica-veterinaria-api-sgvl.onrender.com/appointments");
 
 // 🎬 INICIALIZAR AL CARGAR LA PÁGINA
 window.addEventListener("load", async () => {
